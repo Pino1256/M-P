@@ -5,9 +5,9 @@ SCREEN_HEIGHT = 600
 
 class GameWindow(arcade.Window):
     def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "UPP")
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "M&P")
         
-        menu = 
+        menu = None
         self.show_view(menu)
 
 def main():
