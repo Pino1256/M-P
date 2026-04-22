@@ -1,4 +1,6 @@
 import arcade
+from sprite_animato import SpriteAnimato
 
-class Player(arcade.Sprite):
-    def
+class Player(SpriteAnimato): 
+    def __init__(self):
+        super().__init__(scale = 1)
