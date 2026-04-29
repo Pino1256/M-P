@@ -33,16 +33,16 @@ class Player(SpriteAnimato):
 
     def update_animation(self, delta_time):
         if self.change_y > 0:
-            self.direzione = "giu"
+            self.direzione = "su"
         elif self.change_y < 0:
             self.direzione = "giu"
         elif self.change_x > 0:
-            self.direzione = "sinistra"
-        elif self.change_x < 0:
             self.direzione = "destra"
+        elif self.change_x < 0:
+            self.direzione = "sinistra"
         
         if self.change_x != 0 or self.change_y != 0:
-            self.imposta_animazione(f"run{self.direzione}")
+            self.imposta_animazione(f"run_{self.direzione}")
         else:
             self.direzione = "idle"
             self.imposta_animazione(f"run_{self.direzione}")
@@ -52,17 +52,68 @@ class Player(SpriteAnimato):
 class GameView(arcade.View):
     def __init__(self):
         super().__init__()
-    
+
         arcade.set_background_color(arcade.color.AERO_BLUE)
+
+        #personaggio
+        self.personaggio = None
+        self.lista_personaggio = arcade.SpriteList()
+        self.speed = 5
+
+        # movimento
+        self.up_pressed = False
+        self.down_pressed = False
+        self.left_pressed = False
+        self.right_pressed = False
+
+        self.setup()
+    
+    def setup(self):
+        self.personaggio = Player()
+        self.lista_personaggio.append(self.personaggio)
+
     
     def on_draw(self):
         self.clear()
+
+        self.lista_personaggio.draw()
     
     def on_update(self, delta_time):
-        pass
 
-    def on_key_press(self, symbol: int, modifiers: int) -> bool | None:
-        return 
+        cy = 0
+        cx = 0
+
+        self.lista_personaggio.update()
+        self.lista_personaggio.update_animation(delta_time)
+
+        if self.up_pressed: cy += self.speed
+        if self.down_pressed: cy -= self.speed
+        if self.left_pressed: cx -= self.speed
+        if self.right_pressed: cx += self.speed
     
-    def on_key_release(self, symbol: int, modifiers: int) -> bool | None:
-        return 
+        self.personaggio.change_x = cx
+        self.personaggio.change_y = cy
+
+
+    def on_key_press(self, tasto, modificatori):
+
+        if tasto in (arcade.key.UP, arcade.key.W):
+            self.up_pressed = True
+        elif tasto in (arcade.key.DOWN, arcade.key.S):
+            self.down_pressed = True
+        elif tasto in (arcade.key.LEFT, arcade.key.A):
+            self.left_pressed = True
+        elif tasto in (arcade.key.RIGHT, arcade.key.D):
+            self.right_pressed = True  
+        
+    
+    def on_key_release(self, tasto, modificatori):
+
+        if tasto in (arcade.key.UP, arcade.key.W):
+            self.up_pressed = False
+        elif tasto in (arcade.key.DOWN, arcade.key.S):
+            self.down_pressed = False
+        elif tasto in (arcade.key.LEFT, arcade.key.A):
+            self.left_pressed = False
+        elif tasto in (arcade.key.RIGHT, arcade.key.D):
+            self.right_pressed = False   
