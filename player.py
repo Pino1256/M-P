@@ -23,7 +23,10 @@ class Player(SpriteAnimato):
                 colonne = 8,
                 durata = 1
             )
-            
+        
+        self.direzione = "giu"
+        self.change_x = 0
+        self.change_y = 0
 
 
 
