@@ -13,6 +13,10 @@ class GameView(arcade.View):
         self.clear()
     
     def on_update(self, delta_time):
-        
-        
+        pass
+
+    def on_key_press(self, symbol: int, modifiers: int) -> bool | None:
+        return 
     
+    def on_key_release(self, symbol: int, modifiers: int) -> bool | None:
+        return 
