@@ -4,6 +4,8 @@ from sprite_animato import SpriteAnimato
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
+TILE_SCALING = 0.5
+
 class Player(SpriteAnimato): 
     def __init__(self):
         super().__init__(scale = 1)
@@ -55,7 +57,7 @@ class GameView(arcade.View):
 
         arcade.set_background_color(arcade.color.AERO_BLUE)
 
-        #personaggio
+        # personaggio
         self.personaggio = None
         self.lista_personaggio = arcade.SpriteList()
         self.speed = 5
@@ -66,16 +68,45 @@ class GameView(arcade.View):
         self.left_pressed = False
         self.right_pressed = False
 
+        # camera
+        self.camera = arcade.camera.Camera2D()
+
+        # tile map
+        self.tile_map = None
+        self.scene = None
+
         self.setup()
     
     def setup(self):
+
+        layer_options = {
+            "platforms":{
+                "use_spatial_hash": True
+            }
+        }
+
+        self.tile_map = arcade.load_tilemap(
+            "mappe/mappa_gioco1.tmx",
+            scaling = TILE_SCALING,
+            layer_options = layer_options
+        )
+
+        self.scene = arcade.Scene.from_tilemap(self.tile_map)
+
         self.personaggio = Player()
+        self.personaggio.center_x = 100
+        self.personaggio.center_y = 85
         self.lista_personaggio.append(self.personaggio)
+
+        # self.scene.add_sprite("personaggio", self.personaggio)
 
     
     def on_draw(self):
         self.clear()
 
+        self.scene.draw()
+
+        self.camera.use()
         self.lista_personaggio.draw()
     
     def on_update(self, delta_time):
@@ -93,6 +124,8 @@ class GameView(arcade.View):
     
         self.personaggio.change_x = cx
         self.personaggio.change_y = cy
+
+        self.camera.position = self.personaggio.center_x, self.personaggio.center_y
 
 
     def on_key_press(self, tasto, modificatori):
