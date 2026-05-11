@@ -4,7 +4,7 @@ from sprite_animato import SpriteAnimato
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
-TILE_SCALING = 0.5
+TILE_SCALING = 1.5
 
 class Player(SpriteAnimato): 
     def __init__(self):
@@ -59,7 +59,6 @@ class GameView(arcade.View):
 
         # personaggio
         self.personaggio = None
-        self.lista_personaggio = arcade.SpriteList()
         self.speed = 5
 
         # movimento
@@ -74,13 +73,14 @@ class GameView(arcade.View):
         # tile map
         self.tile_map = None
         self.scene = None
+        self.cambio_mappa = False
 
         self.setup()
     
     def setup(self):
 
-        layer_options = {
-            "platforms":{
+        self.layer_options = {
+            "Livello tile 1":{
                 "use_spatial_hash": True
             }
         }
@@ -88,7 +88,7 @@ class GameView(arcade.View):
         self.tile_map = arcade.load_tilemap(
             "mappe/mappa_gioco1.tmx",
             scaling = TILE_SCALING,
-            layer_options = layer_options
+            layer_options = self.layer_options
         )
 
         self.scene = arcade.Scene.from_tilemap(self.tile_map)
@@ -96,26 +96,70 @@ class GameView(arcade.View):
         self.personaggio = Player()
         self.personaggio.center_x = 100
         self.personaggio.center_y = 85
-        self.lista_personaggio.append(self.personaggio)
 
-        # self.scene.add_sprite("personaggio", self.personaggio)
 
-    
+        self.scene.add_sprite("personaggio", self.personaggio)
+
+        self.collisioni = arcade.SpriteList()
+        self.collisioni.extend(self.scene["casa"])
+        self.collisioni.extend(self.scene["oggetti"])
+        self.collisioni.extend(self.scene["aqua"])
+        # self.collisioni.extend(self.scene["pavimento"])
+        # self.collisioni.extend(self.scene["sedie_2"])
+        # self.collisioni.extend(self.scene["sedie"])
+
+        self.physics_engine = arcade.PhysicsEngineSimple(
+            self.personaggio,
+            walls = self.collisioni
+        )
+
+    def carica_casa(self):
+
+        self.tile_map = arcade.load_tilemap(
+            "mappe/casa_1.tmx",
+            scaling = TILE_SCALING,
+            layer_options = self.layer_options
+        )
+
+        self.scene = arcade.Scene.from_tilemap(self.tile_map)
+
+        self.collisioni = arcade.SpriteList()
+        self.collisioni.extend(self.scene["sedie"])
+        self.collisioni.extend(self.scene["oggetti"])
+        self.collisioni.extend(self.scene["sedie_2"])
+
+        self.physics_engine = arcade.PhysicsEngineSimple(
+            self.personaggio,
+            walls = self.collisioni
+        )
+
+        self.cambio_mappa = False
+
+        self.personaggio.center_x = 100
+        self.personaggio.center_y = 100
+
     def on_draw(self):
         self.clear()
 
+        self.camera.use()
+
         self.scene.draw()
 
-        self.camera.use()
-        self.lista_personaggio.draw()
     
     def on_update(self, delta_time):
 
         cy = 0
         cx = 0
 
-        self.lista_personaggio.update()
-        self.lista_personaggio.update_animation(delta_time)
+        porte = self.scene["porta"]
+        porte_toccate = arcade.check_for_collision_with_list(
+            self.personaggio,
+            porte
+        )
+
+        if porte_toccate and not self.cambio_mappa:
+            self.cambio_mappa = True
+            self.carica_casa()
 
         if self.up_pressed: cy += self.speed
         if self.down_pressed: cy -= self.speed
@@ -124,6 +168,10 @@ class GameView(arcade.View):
     
         self.personaggio.change_x = cx
         self.personaggio.change_y = cy
+
+        self.physics_engine.update()
+
+        self.scene.update_animation(delta_time)
 
         self.camera.position = self.personaggio.center_x, self.personaggio.center_y
 
