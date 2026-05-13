@@ -69,21 +69,25 @@ class GameView(arcade.View):
 
         # camera
         self.camera = arcade.camera.Camera2D()
+        self.camera_ui = arcade.camera.Camera2D()
 
         # tile map
         self.tile_map = None
         self.scene = None
         self.cambio_mappa = False
-
-        self.setup()
-    
-    def setup(self):
+        self.mappa_corrente = "esterno"
+        # self.casa_mappa = True
+        # self.fuori_mappa = False
 
         self.layer_options = {
             "Livello tile 1":{
                 "use_spatial_hash": True
             }
         }
+
+        self.setup()
+    
+    def setup(self):
 
         self.tile_map = arcade.load_tilemap(
             "mappe/mappa_gioco1.tmx",
@@ -94,24 +98,26 @@ class GameView(arcade.View):
         self.scene = arcade.Scene.from_tilemap(self.tile_map)
 
         self.personaggio = Player()
-        self.personaggio.center_x = 100
-        self.personaggio.center_y = 85
+        self.personaggio.center_x = 1100
+        self.personaggio.center_y = 600
 
 
         self.scene.add_sprite("personaggio", self.personaggio)
 
-        self.collisioni = arcade.SpriteList()
-        self.collisioni.extend(self.scene["casa"])
-        self.collisioni.extend(self.scene["oggetti"])
-        self.collisioni.extend(self.scene["aqua"])
+        collisioni = arcade.SpriteList()
+        collisioni.extend(self.scene["casa"])
+        collisioni.extend(self.scene["oggetti"])
+        collisioni.extend(self.scene["aqua"])
         # self.collisioni.extend(self.scene["pavimento"])
         # self.collisioni.extend(self.scene["sedie_2"])
         # self.collisioni.extend(self.scene["sedie"])
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.personaggio,
-            walls = self.collisioni
+            walls = collisioni
         )
+
+        self.cambio_mappa = False
 
     def carica_casa(self):
 
@@ -123,35 +129,42 @@ class GameView(arcade.View):
 
         self.scene = arcade.Scene.from_tilemap(self.tile_map)
 
-        self.collisioni = arcade.SpriteList()
-        self.collisioni.extend(self.scene["sedie"])
-        self.collisioni.extend(self.scene["oggetti"])
-        self.collisioni.extend(self.scene["sedie_2"])
+        self.scene.add_sprite("personaggio", self.personaggio)
+
+        collisioni = arcade.SpriteList()
+        collisioni.extend(self.scene["sedie"])
+        collisioni.extend(self.scene["oggetti"])
+        collisioni.extend(self.scene["sedie_2"])
+        # collisioni.extend(self.scene["porta"])
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.personaggio,
-            walls = self.collisioni
+            walls = collisioni
         )
 
         self.cambio_mappa = False
 
-        self.personaggio.center_x = 100
-        self.personaggio.center_y = 100
+        self.personaggio.center_x = 350
+        self.personaggio.center_y = 50
 
     def on_draw(self):
         self.clear()
 
         self.camera.use()
-
         self.scene.draw()
+
+        self.camera_ui.use()
+
+        arcade.draw_text(f"X: {self.personaggio.center_x:.0f}", 10, SCREEN_HEIGHT - 50, arcade.color.BLACK, 20)
+        arcade.draw_text(f"Y: {self.personaggio.center_y:.0f}", 10, SCREEN_HEIGHT - 70, arcade.color.BLACK, 20)
 
     
     def on_update(self, delta_time):
 
         cy = 0
         cx = 0
-
-        porte = self.scene["porta"]
+        
+        porte = self.scene.get_sprite_list("porta") if "porta" in self.scene._name_mapping else arcade.SpriteList()
         porte_toccate = arcade.check_for_collision_with_list(
             self.personaggio,
             porte
@@ -159,7 +172,23 @@ class GameView(arcade.View):
 
         if porte_toccate and not self.cambio_mappa:
             self.cambio_mappa = True
-            self.carica_casa()
+            if self.mappa_corrente == "esterno":
+                self.mappa_corrente = "casa"
+                self.carica_casa()
+            else:    # elif self.mappa_corrente == "casa":
+                self.mappa_corrente = "esterno"
+                self.setup()
+                self.personaggio.center_x = 1189
+                self.personaggio.center_y = 1620
+
+        # if porte_toccate and not self.cambio_mappa:
+        #     self.cambio_mappa = True
+        #     if self.casa_mappa == True:
+        #         self.fuori_mappa = True
+        #         self.carica_casa()
+        #     elif self.fuori_mappa == True:
+        #         self.casa_mappa = True
+        #         self.setup()
 
         if self.up_pressed: cy += self.speed
         if self.down_pressed: cy -= self.speed
